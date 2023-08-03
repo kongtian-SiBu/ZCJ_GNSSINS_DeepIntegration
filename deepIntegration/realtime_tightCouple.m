@@ -1,5 +1,5 @@
-%% GNSS\INS½ô×éºÏ£¬²»Í¬ÓÚGNSS_SDR,±¾ÎÄ¼şÏÂËùÓĞÍ¨µÀÊÇ½»ÌæÖ´ĞĞ£¬¶ø²»ÊÇÒ»¸öÍ¨µÀÔËĞĞ½áÊøºóÔÙÔËĞĞÏÂÒ»¸öÍ¨µÀ
-% trackResults, channel, TOW, eph, subFrameStart ĞèÒªÌáÇ°×¼±¸ºÃ
+%% GNSS\INSç´§ç»„åˆï¼Œä¸åŒäºGNSS_SDR,æœ¬æ–‡ä»¶ä¸‹æ‰€æœ‰é€šé“æ˜¯äº¤æ›¿æ‰§è¡Œï¼Œè€Œä¸æ˜¯ä¸€ä¸ªé€šé“è¿è¡Œç»“æŸåå†è¿è¡Œä¸‹ä¸€ä¸ªé€šé“
+% trackResults, channel, TOW, eph, subFrameStart éœ€è¦æå‰å‡†å¤‡å¥½
 close all;
 
 settings = initSettings();
@@ -7,13 +7,13 @@ settings = initSettings();
 
 positioningTime = TOW + settings.navSolPeriod / 1000;     
 
-%% INSÏà¹ØĞÅÏ¢³õÊ¼»¯£¬ĞèÌáÇ°°²×°ºÃPSINS
+%% INSç›¸å…³ä¿¡æ¯åˆå§‹åŒ–ï¼Œéœ€æå‰å®‰è£…å¥½PSINS
 glvs
 ggpsvars
 psinstypedef('test_SINS_GPS_tightly_def');
 trj = trjfile('trj_sc522.mat');
 [nn, ts, nts] = nnts(2, diff(trj.imu(1:2,end)));   
-avp0 = trj.avp0;  % Ê¡È¥³õÊ¼¶Ô×¼
+avp0 = trj.avp0;  % çœå»åˆå§‹å¯¹å‡†
 davp = avperrset([10;10;60], 0.5, [2; 2; 6]);     
 
 ins = insinit(avpadderr(trj.avp0, davp), ts);
@@ -24,7 +24,7 @@ trj.imu = imuadderr(trj.imu, imuerr);
 kf = kfinit(ins, davp, imuerr);
 
 
-%% INSÔËĞĞÖÁÊ×¸ö½ô×éºÏÊ±¿Ì
+%% INSè¿è¡Œè‡³é¦–ä¸ªç´§ç»„åˆæ—¶åˆ»
 k = 1;
 k1 = 1;                  
 t = trj.imu(k1, end);   
@@ -38,7 +38,7 @@ while t < positioningTime - 518400
     k = k + nn;      
 end
 
-%% ¸ú×ÙÍ¨µÀ³õÊ¼»¯£¬ĞèÒªÒÀÀµ´«Í³¸ú×Ù»·ºÍ½ÓÊÕ»úµÄÒ»Ğ©ĞÅÏ¢£¬±¾´úÂëÈÏÎªĞÅºÅ³É¹¦¸ú×ÙµÄÍ¨µÀ¶¼ÄÜÖ¡Í¬²½³É¹¦
+%% è·Ÿè¸ªé€šé“åˆå§‹åŒ–ï¼Œéœ€è¦ä¾èµ–ä¼ ç»Ÿè·Ÿè¸ªç¯å’Œæ¥æ”¶æœºçš„ä¸€äº›ä¿¡æ¯ï¼Œæœ¬ä»£ç è®¤ä¸ºä¿¡å·æˆåŠŸè·Ÿè¸ªçš„é€šé“éƒ½èƒ½å¸§åŒæ­¥æˆåŠŸ
 activeChnList = find([trackResults.status] ~= '-');   
 numActChnList = length(activeChnList);               
 BitSyncTime = subFrameStart - 1;
@@ -71,12 +71,12 @@ for ch = activeChnList
 
     trackDeepIn(ii).numOfCoInt = 0;
 
-    % ¼ÇÂ¼ĞÅºÅ¸ú×ÙµÄ¹ı³Ì£¬±ãÓÚµ÷ÊÔ
+    % è®°å½•ä¿¡å·è·Ÿè¸ªçš„è¿‡ç¨‹ï¼Œä¾¿äºè°ƒè¯•
     trackProcess(ii).codeErrorList = [];
     trackProcess(ii).carrErrorList = [];
     trackProcess(ii).codeFreqList = [];
     trackProcess(ii).carrFreqList = []; 
-    trackProcess(ii).PLI = [];           % Phase Lock Indicator Ïê¼û·ëöÎ(Îä´ó)µÄÉî×éºÏÂÛÎÄ
+    trackProcess(ii).PLI = [];           % Phase Lock Indicator è¯¦è§å†¯é‘«(æ­¦å¤§)çš„æ·±ç»„åˆè®ºæ–‡
     
     
     ii = ii + 1;
@@ -95,8 +95,8 @@ for ii = 1 : numActChnList
     trackDeepIn(ii).recvTime = recvTimeforFirstFrameperChannel(ii);  
 end
 
-%% GNSSÔËĞĞÖÁÊ×´Î×éºÏÊ±¿Ì
-I_P_1_list = [];  % ¼ÇÂ¼¸ú×ÙĞÅÏ¢£¬±ãÓÚµ÷ÊÔ
+%% GNSSè¿è¡Œè‡³é¦–æ¬¡ç»„åˆæ—¶åˆ»
+I_P_1_list = [];  % è®°å½•è·Ÿè¸ªä¿¡æ¯ï¼Œä¾¿äºè°ƒè¯•
 Q_P_1_list = [];
 
 for ii = 1 : numActChnList
@@ -119,7 +119,7 @@ for ii = 1 : numActChnList
 end
 
 
-%% ½ô×éºÏ
+%% ç´§ç»„åˆ
 roundTime = 40;     
 navResults = [];
 navResults.X = zeros(1, roundTime); navResults.Y = zeros(1, roundTime); navResults.Z = zeros(1, roundTime); navResults.dt = zeros(1, roundTime);
@@ -131,36 +131,37 @@ for currMeasNr = 1 : roundTime
     currMeasNr
     settings.recvTime = positioningTime;    
      
-    % µÚÒ»´Î¶¨Î»Ö®Ç°£¬ÖÓ²î¹ı´ó£¬ÄÑÒÔÊÕÁ²£¬Òò´ËÏÈÊ¹ÓÃÒ»´Îµ¥µã¶¨Î»ÒÔ²¹³¥ÖÓ²î
+    % ç¬¬ä¸€æ¬¡å®šä½ä¹‹å‰ï¼Œé’Ÿå·®è¿‡å¤§ï¼Œéš¾ä»¥æ”¶æ•›ï¼Œå› æ­¤å…ˆä½¿ç”¨ä¸€æ¬¡å•ç‚¹å®šä½ä»¥è¡¥å¿é’Ÿå·®
+    % é’Ÿå·®å¤§åˆ°ä»€ä¹ˆç¨‹åº¦å¡å°”æ›¼æ»¤æ³¢å°±æ”¶æ•›ä¸äº†ï¼Ÿæˆ‘ä»¥åå†æ¢ç´¢ã€‚
     if currMeasNr == 1
         navSolut_1 = postNavLoose(trackDeepIn, settings, eph, TOW);
-        % ÖÓ²îĞŞÕı
+        % é’Ÿå·®ä¿®æ­£
         for ii = 1 : numActChnList
             trackDeepIn(ii).recvTime = trackDeepIn(ii).recvTime - navSolut_1.dt / settings.c;  
         end
     else
         
-    %% ½ô×éºÏ¿ªÊ¼
-    % 1. GNSSÎ±¾à£¬Î±¾àÂÊ
+    %% ç´§ç»„åˆå¼€å§‹
+    % 1. GNSSä¼ªè·ï¼Œä¼ªè·ç‡
     navSolut = postNavTight(trackDeepIn, settings, eph, TOW);
-    % ³¢ÊÔÖ»±£ÁôÒ»¿Å¿É¼ûÎÀĞÇ
+    % å°è¯•åªä¿ç•™ä¸€é¢—å¯è§å«æ˜Ÿ
 %     navSolut.rawP = navSolut.rawP(1); navSolut.satPositions = navSolut.satPositions(:,1); 
 %     navSolut.satVelocity = navSolut.satVelocity(:,1);  navSolut.satClkCorr = navSolut.satClkCorr(1); 
     
 
     [posxyz, ~] = blh2xyz(ins.pos);     
-    % rhoSatRec°üº¬µØÇò×Ô×ªĞ£Õı£¬¶ÔÓÚ½ô×éºÏÀ´ËµÊÇ±ØĞëµÄ?
+    % rhoSatRecåŒ…å«åœ°çƒè‡ªè½¬æ ¡æ­£ï¼Œå¯¹äºç´§ç»„åˆæ¥è¯´æ˜¯å¿…é¡»çš„?
     [rho, LOS, AzEl] = rhoSatRec(navSolut.satPositions', posxyz, navSolut.rawP');
     el = AzEl(:,2); el(el<15*pi/180) = 1*pi/180;  P = diag(sin(el.^2));
-    delta_rawP = navSolut.rawP' + settings.c * navSolut.satClkCorr' - rho;   % Êµ²â¾àÀë-ÀíÂÛ¾àÀë 
+    delta_rawP = navSolut.rawP' + settings.c * navSolut.satClkCorr' - rho;   % å®æµ‹è·ç¦»-ç†è®ºè·ç¦» 
     
     % 2. EKF
-    kf.Hk = kfhk(ins, LOS);     % ¹Û²â¾ØÕóH
-    kf.Rk = P^-1 * 10^2;        % ¹Û²âÔëÉùĞ­·½²î¾ØÕóR
+    kf.Hk = kfhk(ins, LOS);     % è§‚æµ‹çŸ©é˜µH
+    kf.Rk = P^-1 * 10^2;        % è§‚æµ‹å™ªå£°åæ–¹å·®çŸ©é˜µR
     kf = kfupdate(kf, delta_rawP);
     [kf, ins] = kffeedback(kf, ins, 1, 'avp');  
     
-    % 3. ½«¼ÆËã½á¹û×ª»»»ØECEF×ø±êÏµ²¢¼ÇÂ¼
+    % 3. å°†è®¡ç®—ç»“æœè½¬æ¢å›ECEFåæ ‡ç³»å¹¶è®°å½•
     [posX, posY, posZ] = geo2cart(ins.avp(7,1), ins.avp(8,1), ins.avp(9,1), 5);
     Cenu2xyz = [-sin(ins.pos(2))                  cos(ins.pos(2))   0
                 -sin(ins.pos(1))*cos(ins.pos(2)) -sin(ins.pos(1))*sin(ins.pos(2))  cos(ins.pos(1))
@@ -172,17 +173,17 @@ for currMeasNr = 1 : roundTime
     navResults.VY(1, currMeasNr)= vxyz(2);
     navResults.VZ(1, currMeasNr)= vxyz(3); navResults.df(1, currMeasNr) = kf.xk(end);
     
-    % 4. ÖÓ²îĞŞÕı
+    % 4. é’Ÿå·®ä¿®æ­£
     for ii = 1 : numActChnList
         trackDeepIn(ii).recvTime = trackDeepIn(ii).recvTime - kf.xk(end-1) / settings.c;  
     end
     
     end
     
-    % 5. ÏÂÒ»´Î½ô×éºÏÊ±¿Ì
+    % 5. ä¸‹ä¸€æ¬¡ç´§ç»„åˆæ—¶åˆ»
     positioningTime = positioningTime + settings.navSolPeriod / 1000;
 
-    % 6. INSÔËĞĞÖÁÏÂÒ»´Î½ô×éºÏÊ±¿Ì
+    % 6. INSè¿è¡Œè‡³ä¸‹ä¸€æ¬¡ç´§ç»„åˆæ—¶åˆ»
     while t < positioningTime - 518400     
         k1 = k+nn-1;
         wvm = trj.imu(k:k1,1:6);  t = trj.imu(k1,end);
@@ -194,7 +195,7 @@ for currMeasNr = 1 : roundTime
         
     end
 
-    % 7. GNSSÔËĞĞÖÁÏÂÒ»´Î½ô×éºÏÊ±¿Ì
+    % 7. GNSSè¿è¡Œè‡³ä¸‹ä¸€æ¬¡ç´§ç»„åˆæ—¶åˆ»
     for ii = 1 : numActChnList
         trackans = trackDeepIn(ii);
         while trackans.recvTime < positioningTime     
