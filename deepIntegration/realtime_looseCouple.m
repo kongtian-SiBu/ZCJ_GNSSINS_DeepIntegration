@@ -1,12 +1,12 @@
-%% GNSS\INSËÉ×éºÏ£¬²»Í¬ÓÚGNSS_SDR,±¾ÎÄ¼şÏÂËùÓĞÍ¨µÀÊÇ½»ÌæÖ´ĞĞ£¬¶ø²»ÊÇÒ»¸öÍ¨µÀÔËĞĞ½áÊøºóÔÙÔËĞĞÏÂÒ»¸öÍ¨µÀ
-%% ½ö½öÊÇÔÚGNSS_SPP»ù´¡ÉÏÇ¶ÈëÁË¹ßµ¼Ä£¿é
-% trackResults, channel, TOW, eph, subFrameStart ĞèÒªÌáÇ°×¼±¸ºÃ
+%% GNSS\INSæ¾ç»„åˆï¼Œä¸åŒäºGNSS_SDR,æœ¬æ–‡ä»¶ä¸‹æ‰€æœ‰é€šé“æ˜¯äº¤æ›¿æ‰§è¡Œï¼Œè€Œä¸æ˜¯ä¸€ä¸ªé€šé“è¿è¡Œç»“æŸåå†è¿è¡Œä¸‹ä¸€ä¸ªé€šé“
+%% ä»…ä»…æ˜¯åœ¨GNSS_SPPåŸºç¡€ä¸ŠåµŒå…¥äº†æƒ¯å¯¼æ¨¡å—
+% trackResults, channel, TOW, eph, subFrameStart éœ€è¦æå‰å‡†å¤‡å¥½
 settings = initSettings();
 [fid, ~] = fopen(settings.fileName, 'rb');
 
-positioningTime = TOW + settings.navSolPeriod / 1000;    % Ê×´ÎËÉ×éºÏÊ±¿Ì
+positioningTime = TOW + settings.navSolPeriod / 1000;    % é¦–æ¬¡æ¾ç»„åˆæ—¶åˆ»
 
-%% INSÏà¹ØĞÅÏ¢³õÊ¼»¯£¬ĞèÌáÇ°°²×°ºÃPSINS
+%% INSç›¸å…³ä¿¡æ¯åˆå§‹åŒ–ï¼Œéœ€æå‰å®‰è£…å¥½PSINS
 glvs
 psinstypedef(153);
 trj = trjfile('trj_sc522.mat');
@@ -22,32 +22,32 @@ rk = poserrset([1;1;3]);
 kf = kfinit(ins, davp0, imuerr, rk);
 kf.Pmin = [avperrset(0.01,1e-4,0.1); gabias(1e-3, [1,10])].^2;  kf.pconstrain=1;
 
-%% ¹ßµ¼ÔËĞĞÖÁÊ×´ÎËÉ×éºÏÖ®Ç°
+%% æƒ¯å¯¼è¿è¡Œè‡³é¦–æ¬¡æ¾ç»„åˆä¹‹å‰
 k = 1;
 k1 = 1;            
-t = imu(k1, end);   % INSÊ±¼ä´Á
-while t < positioningTime - 518400     
+t = imu(k1, end);   % INSæ—¶é—´æˆ³
+while t < positioningTime - 518400      % 518400æ˜¯æœ¬æ¬¡ä»¿çœŸçš„èµ·å§‹GPSå‘¨å†…æ—¶åˆ»
     k1 = k+nn-1;
     wvm = imu(k:k1,1:6);  t = imu(k1,end);
     ins = insupdate(ins, wvm);
     kf.Phikk_1 = kffk(ins);
     kf = kfupdate(kf);
 
-    k = k + nn;      % ÓÃÓÚ±êÊ¶¹ßµ¼Êı¾İÓÃµ½µÚ¼¸ĞĞÁË
+    k = k + nn;      % ç”¨äºæ ‡è¯†æƒ¯å¯¼æ•°æ®ç”¨åˆ°ç¬¬å‡ è¡Œäº†
 end
 
-%% ¸ú×ÙÍ¨µÀ³õÊ¼»¯£¬ĞèÒªÒÀÀµ´«Í³¸ú×Ù»·ºÍ½ÓÊÕ»úµÄÒ»Ğ©ĞÅÏ¢£¬±¾´úÂëÈÏÎªĞÅºÅ³É¹¦¸ú×ÙµÄÍ¨µÀ¶¼ÄÜÖ¡Í¬²½³É¹¦
+%% è·Ÿè¸ªé€šé“åˆå§‹åŒ–ï¼Œéœ€è¦ä¾èµ–ä¼ ç»Ÿè·Ÿè¸ªç¯å’Œæ¥æ”¶æœºçš„ä¸€äº›ä¿¡æ¯ï¼Œæœ¬ä»£ç è®¤ä¸ºä¿¡å·æˆåŠŸè·Ÿè¸ªçš„é€šé“éƒ½èƒ½å¸§åŒæ­¥æˆåŠŸ
 activeChnList = find([trackResults.status] ~= '-');  
 numActChnList = length(activeChnList);               
 BitSyncTime = subFrameStart - 1;
 ii = 1;
 for ch = activeChnList     
-    % »ù±¾ĞÅÏ¢
-    % 1) PRNºÅ
+    % åŸºæœ¬ä¿¡æ¯
+    % 1) PRNå·
     trackDeepIn(ii).PRN = trackResults(ch).PRN;    
-    % 2) ¸ú×Ù×´Ì¬
+    % 2) è·Ÿè¸ªçŠ¶æ€
     trackDeepIn(ii).status = trackResults(ch).status;
-    % 3) Ê×´Î³öÏÖÖ¡Í·µÄÎ»ÖÃ
+    % 3) é¦–æ¬¡å‡ºç°å¸§å¤´çš„ä½ç½®
     trackDeepIn(ii).SamplePos = trackResults(ch).absoluteSample(BitSyncTime(ch));
     
 
@@ -87,17 +87,17 @@ for ii = 1 : numActChnList
     trackDeepIn(ii).recvTime = recvTimeforFirstFrameperChannel(ii);  
 end
 
-%% GNSSÔËĞĞÖÁÊ×´Î¶¨Î»Ê±¿ÌÖ®Ç°
+%% GNSSè¿è¡Œè‡³é¦–æ¬¡å®šä½æ—¶åˆ»ä¹‹å‰
 for ii = 1 : numActChnList
     trackans = trackDeepIn(ii);
-    while trackans.recvTime < positioningTime    % Èô¸ÃÍ¨µÀ¾àÀë¸ø¶¨Ê±¿ÌµÄÊ±¼ä²î³¬¹ıÒ»´ÎÏà¸É»ı·Ö£¬Ôò½øĞĞÒ»´ÎÏà¸É»ı·Ö
+    while trackans.recvTime < positioningTime    % è‹¥è¯¥é€šé“è·ç¦»ç»™å®šæ—¶åˆ»çš„æ—¶é—´å·®è¶…è¿‡ä¸€æ¬¡ç›¸å¹²ç§¯åˆ†ï¼Œåˆ™è¿›è¡Œä¸€æ¬¡ç›¸å¹²ç§¯åˆ†
         trackDeepIn(ii) = trackans;
         trackans = perChannelTrackOnce(trackans, settings, fid);
     end
 end
 
-%% GNSS INS ËÉ×éºÏ
-roundTime = 70;    % ËÉ×éºÏ´ÎÊı
+%% GNSS INS æ¾ç»„åˆ
+roundTime = 70;    % æ¾ç»„åˆæ¬¡æ•°
 navResults = [];
 navResults.X = zeros(1, roundTime); navResults.Y = zeros(1, roundTime); navResults.Z = zeros(1, roundTime); navResults.dt = zeros(1, roundTime);
 navResults.VX = zeros(1, roundTime); navResults.VY = zeros(1, roundTime); navResults.VZ = zeros(1, roundTime);
@@ -109,17 +109,17 @@ for currMeasNr = 1 : roundTime
     currMeasNr
     settings.recvTime = positioningTime;
 
-    %% ËÉ×éºÏ¹ı³Ì
-    % 1. GNSS¹Û²âÖµ¼ÆËã
+    %% æ¾ç»„åˆè¿‡ç¨‹
+    % 1. GNSSè§‚æµ‹å€¼è®¡ç®—
     navSolut = postNavLoose(trackDeepIn, settings, eph, TOW);
     [phi, lambda, h] = cart2geo(navSolut.X, navSolut.Y, navSolut.Z, 5);
     posGPS = [phi * pi/180; lambda * pi/180; h];  % pos in BLH
     
     % 2. EKF 
-    kf = kfupdate(kf, ins.pos-posGPS, 'M');   % Êµ²â¾àÀë-ÀíÂÛ¾àÀë £¬´Ë´¦²»ÄÜÅª·´ÁË  ins.pos - posGPS£¬·´ÁËÖ®ºó²»ÊÕÁ²
+    kf = kfupdate(kf, ins.pos-posGPS, 'M');   % å®æµ‹è·ç¦»-ç†è®ºè·ç¦» ï¼Œæ­¤å¤„ä¸èƒ½å¼„åäº†  ins.pos - posGPSï¼Œåäº†ä¹‹åä¸æ”¶æ•›
     [kf, ins] = kffeedback(kf, ins, 1, 'avp');
 
-    % 3. ¼ÇÂ¼ËÉ×éºÏµÄ½á¹û£¬½«½á¹ûÔÙ×ª»»»ØECEFÏµ
+    % 3. è®°å½•æ¾ç»„åˆçš„ç»“æœï¼Œå°†ç»“æœå†è½¬æ¢å›ECEFç³»
     [posX, posY, posZ] = geo2cart(ins.avp(7,1), ins.avp(8,1), ins.avp(9,1), 5);
     Cenu2xyz = [-sin(ins.pos(2))                  cos(ins.pos(2))                  0
                 -sin(ins.pos(1))*cos(ins.pos(2)) -sin(ins.pos(1))*sin(ins.pos(2))  cos(ins.pos(1))
@@ -133,15 +133,15 @@ for currMeasNr = 1 : roundTime
     navResults.VY(1, currMeasNr)= vxyz(2);
     navResults.VZ(1, currMeasNr)= vxyz(3);
 
-    % 4. ÖÓ²îĞŞÕı
+    % 4. é’Ÿå·®ä¿®æ­£
     for ii = 1 : numActChnList
         trackDeepIn(ii).recvTime = trackDeepIn(ii).recvTime - navSolut.dt / settings.c;  
     end
     
-    % 5. ÏÂÒ»´ÎËÉ×éºÏÊ±¿Ì
+    % 5. ä¸‹ä¸€æ¬¡æ¾ç»„åˆæ—¶åˆ»
     positioningTime = positioningTime + settings.navSolPeriod / 1000;
 
-    % 6. INSÔËĞĞÖÁÏÂÒ»´Î×éºÏÊ±¿Ì
+    % 6. INSè¿è¡Œè‡³ä¸‹ä¸€æ¬¡ç»„åˆæ—¶åˆ»
     while t < positioningTime - 518400     
         k1 = k+nn-1;
         wvm = imu(k:k1,1:6);  t = imu(k1,end);
@@ -152,7 +152,7 @@ for currMeasNr = 1 : roundTime
         k = k + nn;      
     end
 
-    % 7. GNSSÔËĞĞÖÁÏÂÒ»´Î×éºÏÊ±¿Ì
+    % 7. GNSSè¿è¡Œè‡³ä¸‹ä¸€æ¬¡ç»„åˆæ—¶åˆ»
     for ii = 1 : numActChnList
         trackans = trackDeepIn(ii);
         while trackans.recvTime < positioningTime     
