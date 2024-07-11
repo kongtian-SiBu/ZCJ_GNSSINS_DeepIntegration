@@ -6,3 +6,5 @@ GNSS和INS深组合的尝试，在GNSS_SDR和PSINS基础上组合得到。代码
 
 另一份代码是https://github.com/easyrtk/GNSS_SDRvINS2014
 写的稍微好懂点但没注释...
+
+联系方式：QQ 255646886；电话 13572217478
