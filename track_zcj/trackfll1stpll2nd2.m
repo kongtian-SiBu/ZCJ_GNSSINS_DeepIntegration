@@ -9,7 +9,7 @@ function [trackResults, channel]= trackfll1stpll2nd2(fid, channel, settings, isF
 %                       satellites to be tracked (prepared by preRum.m from
 %                       acquisition results).
 %       settings        - receiver settings.
-%       isFLL           - isFLL = 1, Ôò¶Ï¿ªPLL±äÎª´¿PLL£»·ñÔòÎªFLL¸¨ÖúPLL
+%       isFLL           - isFLL = 1, åˆ™æ–­å¼€PLLå˜ä¸ºçº¯FLLï¼›å¦åˆ™ä¸ºFLLè¾…åŠ©PLL
 %   Outputs:
 %       trackResults    - tracking results (structure array). Contains
 %                       in-phase prompt outputs and absolute starting 
@@ -20,113 +20,113 @@ function [trackResults, channel]= trackfll1stpll2nd2(fid, channel, settings, isF
 %--------------------------------------------------------------------------
 
 
-%% ³õÊ¼»¯ĞÅºÅ¸ú×Ù½á¹¹Ìå ============================================
+%% åˆå§‹åŒ–ä¿¡å·è·Ÿè¸ªç»“æ„ä½“ ============================================
 
-% ĞÅºÅ¸ú×Ù×´Ì¬
-trackResults.status         = '-';      % '-'±íÊ¾¸ÃÍ¨µÀÎŞĞÅºÅ
+% ä¿¡å·è·Ÿè¸ªçŠ¶æ€
+trackResults.status         = '-';      % '-'è¡¨ç¤ºè¯¥é€šé“æ— ä¿¡å·
 
-% Ã¿Ò»´ÎÏà¸É»ı·Ö½áÊøºó£¬Êı¾İÎÄ¼şÖ¸ÕëµÄÎ»ÖÃ
+% æ¯ä¸€æ¬¡ç›¸å¹²ç§¯åˆ†ç»“æŸåï¼Œæ•°æ®æ–‡ä»¶æŒ‡é’ˆçš„ä½ç½®
 trackResults.absoluteSample = zeros(1, settings.msToProcess);
 
-% CAÂëÆµÂÊ
+% CAç é¢‘ç‡
 trackResults.codeFreq       = inf(1, settings.msToProcess);
 
-% ÔØ²¨ÆµÂÊ
+% è½½æ³¢é¢‘ç‡
 trackResults.carrFreq       = inf(1, settings.msToProcess);
 
-% E,L,PÖ§Â·IÂ·
+% E,L,Pæ”¯è·¯Iè·¯
 trackResults.I_P            = zeros(1, settings.msToProcess);
 trackResults.I_E            = zeros(1, settings.msToProcess);
 trackResults.I_L            = zeros(1, settings.msToProcess);
 
-% E,L,PÖ§Â·QÂ·
+% E,L,Pæ”¯è·¯Qè·¯
 trackResults.Q_E            = zeros(1, settings.msToProcess);
 trackResults.Q_P            = zeros(1, settings.msToProcess);
 trackResults.Q_L            = zeros(1, settings.msToProcess);
 
-% ¼øÏàÆ÷Êä³ö
+% é‰´ç›¸å™¨è¾“å‡º
 trackResults.dllDiscr       = inf(1, settings.msToProcess);
 trackResults.pllDiscr       = inf(1, settings.msToProcess);
 
-% NCOÊä³ö
+% NCOè¾“å‡º
 trackResults.dllDiscrFilt   = inf(1, settings.msToProcess);
 trackResults.pllDiscrFilt   = inf(1, settings.msToProcess);
 
-%------------------------ ÎªÃ¿Ò»¸öÍ¨µÀ³õÊ¼»¯ -------------------------------
+%------------------------ ä¸ºæ¯ä¸€ä¸ªé€šé“åˆå§‹åŒ– -------------------------------
 trackResults = repmat(trackResults, 1, settings.numberOfChannels);
 
-%% ³õÊ¼»¯ĞÅºÅ¸ú×ÙµÄÏà¹Ø²ÎÊı ==========================================
+%% åˆå§‹åŒ–ä¿¡å·è·Ÿè¸ªçš„ç›¸å…³å‚æ•° ==========================================
 
 codePeriods = settings.msToProcess;     % For GPS one C/A code is one ms
 
-%--- DLL ²ÎÊı --------------------------------------------------------
-% Ïà¹ØÆ÷¼ä¸ô (in chips)
+%--- DLL å‚æ•° --------------------------------------------------------
+% ç›¸å…³å™¨é—´éš” (in chips)
 earlyLateSpc = settings.dllCorrelatorSpacing;
 
-% Âë»·¸üĞÂÖÜÆÚ£¬ÔÚ¸Ãº¯ÊıÖĞµÈÓÚÏà¸É»ı·ÖÊ±¼ä
+% ç ç¯æ›´æ–°å‘¨æœŸï¼Œåœ¨è¯¥å‡½æ•°ä¸­ç­‰äºç›¸å¹²ç§¯åˆ†æ—¶é—´
 PDIcode = 0.001;
 
-% 2½×DLL»·Â·ÂË²¨Æ÷ÏµÊı¼ÆËã
+% 2é˜¶DLLç¯è·¯æ»¤æ³¢å™¨ç³»æ•°è®¡ç®—
 [tau1code, tau2code] = calcLoopCoef(settings.dllNoiseBandwidth, ...
                                     settings.dllDampingRatio, ...
                                     1.0);
 
-%--- PLL ²ÎÊı --------------------------------------------------------
-% ÔØ²¨»·¸üĞÂÖÜÆÚ£¬ÔÚ¸Ãº¯ÊıÖĞµÈÓÚÏà¸É»ı·ÖÊ±¼ä
+%--- PLL å‚æ•° --------------------------------------------------------
+% è½½æ³¢ç¯æ›´æ–°å‘¨æœŸï¼Œåœ¨è¯¥å‡½æ•°ä¸­ç­‰äºç›¸å¹²ç§¯åˆ†æ—¶é—´
 PDIcarr = 0.001;
 
-% 2½×PLL»·Â·ÂË²¨Æ÷ÏµÊı¼ÆËã
+% 2é˜¶PLLç¯è·¯æ»¤æ³¢å™¨ç³»æ•°è®¡ç®—
 a2 = 1.414;
 wn = settings.pllNoiseBandwidth / 0.53;
 kca1 = wn ^ 2 * PDIcarr / settings.pllLoopGain;
 kca2 = a2 * wn / settings.pllLoopGain;
                                 
-%--- FLL ²ÎÊı --------------------------------------------------------                                
+%--- FLL å‚æ•° --------------------------------------------------------                                
 wnf = settings.fllNoiseBandwidth / 0.25;
 fca1 = wnf / settings.fllLoopGain * PDIcarr;
 
 hwb = waitbar(0,'Tracking...');
 
-%% ¿ªÊ¼ĞÅºÅ¸ú×Ù ==============================================
+%% å¼€å§‹ä¿¡å·è·Ÿè¸ª ==============================================
 for channelNr = 1:settings.numberOfChannels
     
-    % Èç¹û³É¹¦²¶»ñ£¬Ôò¸ÃÍ¨µÀPRNºÅ²»Îª0
+    % å¦‚æœæˆåŠŸæ•è·ï¼Œåˆ™è¯¥é€šé“PRNå·ä¸ä¸º0
     if (channel(channelNr).PRN ~= 0)
 
         trackResults(channelNr).PRN     = channel(channelNr).PRN;
         
-        % ÒÆ¶¯µ½²¶»ñµ½µÄÂëÏàÎ»´¦£¬Èç¹ûÂëÏàÎ»¼ÆËã×¼È·£¬ÒÆ¶¯ºóÂëÏàÎ»Ó¦¸ÃÎª0
+        % ç§»åŠ¨åˆ°æ•è·åˆ°çš„ç ç›¸ä½å¤„ï¼Œå¦‚æœç ç›¸ä½è®¡ç®—å‡†ç¡®ï¼Œç§»åŠ¨åç ç›¸ä½åº”è¯¥ä¸º0
         fseek(fid, ...
               settings.fileType * settings.dataFormat * (settings.skipNumberOfSamples + channel(channelNr).codePhase-1), ...
               'bof');
 
-        % Éú³ÉCAÂë
+        % ç”ŸæˆCAç 
         caCode = generateCAcode(channel(channelNr).PRN);
-        % Ç°ºó¸÷Ìí¼ÓÒ»¸öÂëÆ¬
+        % å‰åå„æ·»åŠ ä¸€ä¸ªç ç‰‡
         caCode = [caCode(1023) caCode caCode(1)];
 
-        %--- ³õÊ¼»¯Ò»Ğ©±äÁ¿ÓÃÓÚ²¶»ñ ------------------------------
+        %--- åˆå§‹åŒ–ä¸€äº›å˜é‡ç”¨äºæ•è· ------------------------------
       
-        codeFreq      = settings.codeFreqBasis;     % ÂëÆµÂÊ³õÊ¼»¯Îª1.023e6¼´¿É  
-        remCodePhase  = 0.0;                        % ÏÂÒ»ÂÖµÄÂëÆğÊ¼ÏàÎ»
+        codeFreq      = settings.codeFreqBasis;     % ç é¢‘ç‡åˆå§‹åŒ–ä¸º1.023e6å³å¯  
+        remCodePhase  = 0.0;                        % ä¸‹ä¸€è½®çš„ç èµ·å§‹ç›¸ä½
     
-        carrFreq      = channel(channelNr).acquiredFreq;  % ÔØ²¨ÆµÂÊ³õÊ¼»¯Îª²¶»ñµ½µÄÆµÂÊ
-        carrFreqBasis = channel(channelNr).acquiredFreq;  % ÔØ²¨»·µÄ»ù×¼ÆµÂÊ³õÊ¼»¯Îª²¶»ñµ½µÄÆµÂÊ
-        remCarrPhase  = 0.0;                              % ÏÂÒ»ÂÖµÄÔØ²¨ÆğÊ¼ÏàÎ»
+        carrFreq      = channel(channelNr).acquiredFreq;  % è½½æ³¢é¢‘ç‡åˆå§‹åŒ–ä¸ºæ•è·åˆ°çš„é¢‘ç‡
+        carrFreqBasis = channel(channelNr).acquiredFreq;  % è½½æ³¢ç¯çš„åŸºå‡†é¢‘ç‡åˆå§‹åŒ–ä¸ºæ•è·åˆ°çš„é¢‘ç‡
+        remCarrPhase  = 0.0;                              % ä¸‹ä¸€è½®çš„è½½æ³¢èµ·å§‹ç›¸ä½
 
-        % Âë»·»·Â·ÂË²¨Æ÷µÄÖĞ¼äÁ¿³õÊ¼»¯
+        % ç ç¯ç¯è·¯æ»¤æ³¢å™¨çš„ä¸­é—´é‡åˆå§‹åŒ–
         oldCodeNco   = 0.0;
         oldCodeError = 0.0;
 
-        % ÔØ²¨»·»·Â·ÂË²¨Æ÷µÄÖĞ¼äÁ¿³õÊ¼»¯
+        % è½½æ³¢ç¯ç¯è·¯æ»¤æ³¢å™¨çš„ä¸­é—´é‡åˆå§‹åŒ–
         xkminus1     = 0.0;
-        zkminus1     = 0.0;             % ¶ÔÓ¦ÓÚPLLĞÅºÅÁ÷Í¼µÚÒ»¸öÑÓÊ±Æ÷Ö®ºóµÄÎ»ÖÃ
+        zkminus1     = 0.0;             % å¯¹åº”äºPLLä¿¡å·æµå›¾ç¬¬ä¸€ä¸ªå»¶æ—¶å™¨ä¹‹åçš„ä½ç½®
         
-        % Í¨µÀÖ®¼ä´®ĞĞ¸ú×Ù£¬¼´Ò»¸öÍ¨µÀÈ«²¿¸ú×Ù½áÊøÖ®ºóÔÙ¸ú×ÙÏÂÒ»Í¨µÀ
+        % é€šé“ä¹‹é—´ä¸²è¡Œè·Ÿè¸ªï¼Œå³ä¸€ä¸ªé€šé“å…¨éƒ¨è·Ÿè¸ªç»“æŸä¹‹åå†è·Ÿè¸ªä¸‹ä¸€é€šé“
         for loopCnt =  1:codePeriods
             
-%% ¸ú×Ù½ø¶ÈÌõ -------------------------------------------------------------
-            % ½ø¶ÈÌõÃ¿50´ÎÏà¸É»ı·Ö¸üĞÂÒ»´Î
+%% è·Ÿè¸ªè¿›åº¦æ¡ -------------------------------------------------------------
+            % è¿›åº¦æ¡æ¯50æ¬¡ç›¸å¹²ç§¯åˆ†æ›´æ–°ä¸€æ¬¡
             if (rem(loopCnt, 50) == 0)
                 try
                     waitbar(loopCnt/codePeriods, ...
@@ -137,24 +137,24 @@ for channelNr = 1:settings.numberOfChannels
                             '; Completed ',int2str(loopCnt), ...
                             ' of ', int2str(codePeriods), ' msec']);                       
                 catch
-                    % ½ø¶ÈÌõÈç¹û±»¹Ø±ÕÔò×Ô¶¯ÍË³ö¸ú×Ù
+                    % è¿›åº¦æ¡å¦‚æœè¢«å…³é—­åˆ™è‡ªåŠ¨é€€å‡ºè·Ÿè¸ª
                     disp('Progress bar closed, exiting...');
                     return
                 end
             end
 
-%% ´¦ÀíÒ»¸öÏà¸É»ı·ÖÊı¾İ¿é ------------------------------------------------                        
+%% å¤„ç†ä¸€ä¸ªç›¸å¹²ç§¯åˆ†æ•°æ®å— ------------------------------------------------                        
             
-            % ¶ÔÓÚµ±Ç°Âë»·¼ÆËãµÃµ½µÄÂëÆµÂÊÀ´Ëµ£¬Ò»¸ö²ÉÑùµã¶ÔÓ¦µÄÂëÏàÎ»²½½øÁ¿ÊÇ¶àÉÙ 
+            % å¯¹äºå½“å‰ç ç¯è®¡ç®—å¾—åˆ°çš„ç é¢‘ç‡æ¥è¯´ï¼Œä¸€ä¸ªé‡‡æ ·ç‚¹å¯¹åº”çš„ç ç›¸ä½æ­¥è¿›é‡æ˜¯å¤šå°‘ 
             codePhaseStep = codeFreq / settings.samplingFreq;   
             
-            % ¶ÔÓÚµ±Ç°Âë»·¼ÆËãµÃµ½µÄÂëÆµÂÊ¡¢µ±Ç°ÖÜÆÚµÄÆğÊ¼ÂëÏàÎ»¡¢Ã¿¸ö²ÉÑùµã¶ÔÓ¦µÄÏàÎ»²½½øÁ¿À´Ëµ£¬
-            % Éú³ÉÒ»¸öÖÜÆÚµÄÂë¶ÔÓ¦¶àÉÙ²ÉÑùµã£¨¸ÃÊıÖµµÄ´óĞ¡ÔÚ¸Ãº¯ÊıÖĞÔ¼µÈÓÚ1ms¶ÔÓ¦µÄ²ÉÑùµã¸öÊı£©
+            % å¯¹äºå½“å‰ç ç¯è®¡ç®—å¾—åˆ°çš„ç é¢‘ç‡ã€å½“å‰å‘¨æœŸçš„èµ·å§‹ç ç›¸ä½ã€æ¯ä¸ªé‡‡æ ·ç‚¹å¯¹åº”çš„ç›¸ä½æ­¥è¿›é‡æ¥è¯´ï¼Œ
+            % ç”Ÿæˆä¸€ä¸ªå‘¨æœŸçš„ç å¯¹åº”å¤šå°‘é‡‡æ ·ç‚¹ï¼ˆè¯¥æ•°å€¼çš„å¤§å°åœ¨è¯¥å‡½æ•°ä¸­çº¦ç­‰äº1mså¯¹åº”çš„é‡‡æ ·ç‚¹ä¸ªæ•°ï¼‰
             blksize = ceil((settings.codeLength - remCodePhase) / codePhaseStep);  
             
-            % ¶ÁÈ¡¶ÔÓ¦ÊıÁ¿µÄ²ÉÑùµã
+            % è¯»å–å¯¹åº”æ•°é‡çš„é‡‡æ ·ç‚¹
             [rawSignal, samplesRead] = fread(fid, settings.fileType * blksize, settings.dataType);
-            rawSignal = transpose(rawSignal);  % ×ªÖÃ£¬×¢ÒâÕâÀï²»ÒªÓÃ'£¬'ºÅ±íÊ¾¹²éî×ªÖÃ
+            rawSignal = transpose(rawSignal);  % è½¬ç½®ï¼Œæ³¨æ„è¿™é‡Œä¸è¦ç”¨'ï¼Œ'å·è¡¨ç¤ºå…±è½­è½¬ç½®
             if settings.fileType == 2
                 rawSignalI = rawSignal(1:2:end);
                 rawSignalQ = rawSignal(2:2:end);
@@ -162,45 +162,45 @@ for channelNr = 1:settings.numberOfChannels
                 % rawSignal  = rawSignalI + 0 * rawSignalQ;  Flag = 1;  % I,Q not combined               
             end
                                                                
-            % Èç¹ûÊı¾İ²»¹»ÁË£¬Ö±½ÓÍË³ö
+            % å¦‚æœæ•°æ®ä¸å¤Ÿäº†ï¼Œç›´æ¥é€€å‡º
             if (samplesRead ~= settings.fileType * blksize)
                 disp('Not able to read the specified number of samples  for tracking, exiting!')
  %               fclose(fid);
                 return
             end
 
-%% Éú³ÉE¡¢L¡¢PÖ§Â·¶ÔÓ¦µÄÂë ------------------------------------------
-            % EÖ§Â·
+%% ç”ŸæˆEã€Lã€Pæ”¯è·¯å¯¹åº”çš„ç  ------------------------------------------
+            % Eæ”¯è·¯
             tcode       = (remCodePhase-earlyLateSpc) : ...
                           codePhaseStep : ...
                           ((blksize-1)*codePhaseStep+remCodePhase-earlyLateSpc);
             tcode2      = ceil(tcode) + 1;
             earlyCode   = caCode(tcode2);
             
-            % LÖ§Â·
+            % Læ”¯è·¯
             tcode       = (remCodePhase+earlyLateSpc) : ...
                           codePhaseStep : ...
                           ((blksize-1)*codePhaseStep+remCodePhase+earlyLateSpc);
             tcode2      = ceil(tcode) + 1;
             lateCode    = caCode(tcode2);
             
-            % PÖ§Â·
+            % Pæ”¯è·¯
             tcode       = remCodePhase : ...
                           codePhaseStep : ...
                           ((blksize-1)*codePhaseStep+remCodePhase);
             tcode2      = ceil(tcode) + 1;
             promptCode  = caCode(tcode2);
             
-            remCodePhase = (tcode(blksize) + codePhaseStep) - 1023.0;  % ¼ÆËãÏÂÒ»ÂÖCAÂëµÄÆğÊ¼ÏàÎ»£¬±£Ö¤ÂëÏàÎ»Á¬Ğø
+            remCodePhase = (tcode(blksize) + codePhaseStep) - 1023.0;  % è®¡ç®—ä¸‹ä¸€è½®CAç çš„èµ·å§‹ç›¸ä½ï¼Œä¿è¯ç ç›¸ä½è¿ç»­
 
-%% Éú³ÉÔØ²¨ -------------------------------------------------------
+%% ç”Ÿæˆè½½æ³¢ -------------------------------------------------------
             time    = (0:blksize) ./ settings.samplingFreq;
             
-            % Éú³ÉÔØ²¨ÏàÎ»
-            trigarg = ((carrFreq * 2.0 * pi) .* time) + remCarrPhase;  % remCarrPhase×÷Îª±¾ÂÖµÄÆğÊ¼ÏàÎ»£¬ÕâÑùÄÜ±£³ÖÃ¿Ò»ÂÖµÄÏàÎ»Á¬Ğø        
-            remCarrPhase = rem(trigarg(blksize+1), (2 * pi));          % ¼ÆËãÏÂÒ»ÂÖÔØ²¨µÄÆğÊ¼ÏàÎ»
+            % ç”Ÿæˆè½½æ³¢ç›¸ä½
+            trigarg = ((carrFreq * 2.0 * pi) .* time) + remCarrPhase;  % remCarrPhaseä½œä¸ºæœ¬è½®çš„èµ·å§‹ç›¸ä½ï¼Œè¿™æ ·èƒ½ä¿æŒæ¯ä¸€è½®çš„ç›¸ä½è¿ç»­        
+            remCarrPhase = rem(trigarg(blksize+1), (2 * pi));          % è®¡ç®—ä¸‹ä¸€è½®è½½æ³¢çš„èµ·å§‹ç›¸ä½
     
-            % ÊµÊı¾İºÍ¸´Êı¾İ·Ö¿ª´¦Àí£¬ÊÇ·ñÓĞ±ØÒª£¿ÒÔºóÔÙËµ
+            % å®æ•°æ®å’Œå¤æ•°æ®åˆ†å¼€å¤„ç†ï¼Œæ˜¯å¦æœ‰å¿…è¦ï¼Ÿä»¥åå†è¯´
             if settings.fileType == 1 || Flag == 1
                 carrCos = cos(trigarg(1:blksize));
                 carrSin = sin(trigarg(1:blksize));
@@ -213,7 +213,7 @@ for channelNr = 1:settings.numberOfChannels
                 iBasebandSignal = real(carr .* rawSignal);
             end
                         
-            % Ïà¸É»ı·Ö
+            % ç›¸å¹²ç§¯åˆ†
             I_E = sum(earlyCode  .* iBasebandSignal) / length(earlyCode);
             Q_E = sum(earlyCode  .* qBasebandSignal) / length(earlyCode);
             I_P = sum(promptCode .* iBasebandSignal) / length(promptCode);
@@ -221,73 +221,73 @@ for channelNr = 1:settings.numberOfChannels
             I_L = sum(lateCode   .* iBasebandSignal) / length(lateCode);
             Q_L = sum(lateCode   .* qBasebandSignal) / length(lateCode);            
             
-%% PLL»·Â·¸üĞÂ -----------------------------------------------------
+%% PLLç¯è·¯æ›´æ–° -----------------------------------------------------
             if loopCnt == 1
                 carrNco = 0.0; carrError = 0.0;
                 trackResults(channelNr).carrFreq(loopCnt) = carrFreq;
             else
                 
-                % fll discriminator, ÍêÈ«Ä£·Âgnss_sdrlibÕâ·İCÓïÑÔ´úÂë£¬²¢Ã»ÓĞÍêÈ«°´ÕÕÊéÉÏËùĞ´µÄ¼øÆµÆ÷
+                % fll discriminator, å®Œå…¨æ¨¡ä»¿gnss_sdrlibè¿™ä»½Cè¯­è¨€ä»£ç ï¼Œå¹¶æ²¡æœ‰å®Œå…¨æŒ‰ç…§ä¹¦ä¸Šæ‰€å†™çš„é‰´é¢‘å™¨
                 if I_P == 0
                     f1 = pi/2;
                 else
-                    f1 = atan(Q_P/I_P);    % µ±Ç°ÔØ²¨ÏàÎ»
+                    f1 = atan(Q_P/I_P);    % å½“å‰è½½æ³¢ç›¸ä½
                 end
 
                 if trackResults(channelNr).I_P(loopCnt - 1) == 0
                     f2 = pi/2;
                 else
-                    f2 = atan(trackResults(channelNr).Q_P(loopCnt-1)/trackResults(channelNr).I_P(loopCnt - 1)); % ÉÏÒ»Ê±¿ÌÔØ²¨ÏàÎ»
+                    f2 = atan(trackResults(channelNr).Q_P(loopCnt-1)/trackResults(channelNr).I_P(loopCnt - 1)); % ä¸Šä¸€æ—¶åˆ»è½½æ³¢ç›¸ä½
                 end
-                freqErr = (f1 - f2);           % ÏàÎ»²½½øÁ¿
+                freqErr = (f1 - f2);           % ç›¸ä½æ­¥è¿›é‡
                 if (freqErr > pi/2)
                     freqErr = pi-freqErr;
                 end
                 if (freqErr < -pi/2)
                     freqErr = -pi-freqErr;
                 end               
-                freqErr = freqErr / PDIcarr;   % ÆµÂÊ±ä»¯Á¿ = ÏàÎ»²½½øÁ¿ / Ê±¼ä±ä»¯Á¿
+                freqErr = freqErr / PDIcarr;   % é¢‘ç‡å˜åŒ–é‡ = ç›¸ä½æ­¥è¿›é‡ / æ—¶é—´å˜åŒ–é‡
                 
-                % ¼øÏàÆ÷£¬atan(Q_P / I_P)µÄµ¥Î»Îª»¡¶È£¬³ıÒÔ2piºóµ¥Î»±ä³É 'ÖÜ'£¬Ò²µÈ¼ÛÓÚHz
+                % é‰´ç›¸å™¨ï¼Œatan(Q_P / I_P)çš„å•ä½ä¸ºå¼§åº¦ï¼Œé™¤ä»¥2piåå•ä½å˜æˆ 'å‘¨'ï¼Œä¹Ÿç­‰ä»·äºHz
                 carrError = atan(Q_P / I_P) / (2.0 * pi);  
                 if isFLL == 1
-                    carrError = 0;  % È¥³ı´ËĞĞ£¬ÎªÒ»½×FLL¸¨Öú¶ş½×PLL£»·´Ö®ÔòÎª´¿Ò»½×FLL
+                    carrError = 0;  % å»é™¤æ­¤è¡Œï¼Œä¸ºä¸€é˜¶FLLè¾…åŠ©äºŒé˜¶PLLï¼›åä¹‹åˆ™ä¸ºçº¯ä¸€é˜¶FLL
                 end
-                % »·Â·ÂË²¨Æ÷µÄÊ±Óò¹«Ê½£¬ÊÇ´ÓZÓò×ª»»µÃµ½
-                % ÍêÈ«Ä£·Âgnss_sdrlibÕâ·İCÓïÑÔ´úÂë
+                % ç¯è·¯æ»¤æ³¢å™¨çš„æ—¶åŸŸå…¬å¼ï¼Œæ˜¯ä»ZåŸŸè½¬æ¢å¾—åˆ°
+                % å®Œå…¨æ¨¡ä»¿gnss_sdrlibè¿™ä»½Cè¯­è¨€ä»£ç 
                 xk = carrError * kca1 + freqErr * fca1;
                 zk = zkminus1 + (xk + xkminus1);         % y(n) = y(n-1) + x(n) + x(n-1)
                 xkminus1 = xk;  zkminus1 = zk;
                 carrNco = zk / 2 + carrError * kca2;     
 
-                % ¸üĞÂÔØ²¨ÆµÂÊ
+                % æ›´æ–°è½½æ³¢é¢‘ç‡
                 carrFreq = carrFreqBasis + carrNco;
-                trackResults(channelNr).carrFreq(loopCnt) = carrFreq; % ¼ÇÂ¼ÔØ²¨ÆµÂÊ
+                trackResults(channelNr).carrFreq(loopCnt) = carrFreq; % è®°å½•è½½æ³¢é¢‘ç‡
             end
             
-%% DLL»·Â·¸üĞÂ -----------------------------------------------------
-            % Âë¼øÏàÆ÷£¬ºÍÊéÉÏÏà±ÈÉÙÁË¸ö1/2£¬²»¹ıÎŞËùÎ½²»Ó°Ïì
+%% DLLç¯è·¯æ›´æ–° -----------------------------------------------------
+            % ç é‰´ç›¸å™¨ï¼Œå’Œä¹¦ä¸Šç›¸æ¯”å°‘äº†ä¸ª1/2ï¼Œä¸è¿‡æ— æ‰€è°“ä¸å½±å“
             codeError = (sqrt(I_E * I_E + Q_E * Q_E) - sqrt(I_L * I_L + Q_L * Q_L)) / ...
                 (sqrt(I_E * I_E + Q_E * Q_E) + sqrt(I_L * I_L + Q_L * Q_L));
             
-            % »·Â·ÂË²¨Æ÷µÄÊ±Óò¹«Ê½£¬ÊÇ´ÓZÓò×ª»»µÃµ½£¬ºÍÔØ²¨»·ºÁÎŞÇø±ğ
+            % ç¯è·¯æ»¤æ³¢å™¨çš„æ—¶åŸŸå…¬å¼ï¼Œæ˜¯ä»ZåŸŸè½¬æ¢å¾—åˆ°ï¼Œå’Œè½½æ³¢ç¯æ¯«æ— åŒºåˆ«
             codeNco = oldCodeNco + (tau2code/tau1code) * ...
                 (codeError - oldCodeError) + codeError * (PDIcode/tau1code);
             oldCodeNco   = codeNco;
             oldCodeError = codeError;
             
-            % ×¢Òâ´Ë´¦Ó¦ÊÇ¼õºÅ¡£ÂëÏàÎ»ÍêÃÀÍ¬²½Ê±Ó¦¸ÃÓĞEºÍLÖ§Â·ĞÅºÅÄÜÁ¿ÏàµÈ£¬¶¼
-            % Ğ¡ÓÚPÖ§Â·ĞÅºÅÄÜÁ¿¡£²»·ÁÉè´ËÂÖEÖ§Â·ÄÜÁ¿´óÓÚLÖ§Â·£¬´ËÊ±ÓÉ¼øÏàÆ÷¹«Ê½
-            % ¿ÉµÃcodeError > 0¡£´ËÊ±»·Â·ÈÏÎª±¾µØÂëÏàÎ»³¬Ç°ÁËÊäÈëĞÅºÅµÄÂëÏàÎ»£¬Òò´Ë
-            % Ó¦½µµÍ±¾µØÂëÆµÂÊ£¬ÉÔÎ¢¡°µÈÒ»µÈ¡±ÊäÈëĞÅºÅ¡£
+            % æ³¨æ„æ­¤å¤„åº”æ˜¯å‡å·ã€‚ç ç›¸ä½å®Œç¾åŒæ­¥æ—¶åº”è¯¥æœ‰Eå’ŒLæ”¯è·¯ä¿¡å·èƒ½é‡ç›¸ç­‰ï¼Œéƒ½
+            % å°äºPæ”¯è·¯ä¿¡å·èƒ½é‡ã€‚ä¸å¦¨è®¾æ­¤è½®Eæ”¯è·¯èƒ½é‡å¤§äºLæ”¯è·¯ï¼Œæ­¤æ—¶ç”±é‰´ç›¸å™¨å…¬å¼
+            % å¯å¾—codeError > 0ã€‚æ­¤æ—¶ç¯è·¯è®¤ä¸ºæœ¬åœ°ç ç›¸ä½è¶…å‰äº†è¾“å…¥ä¿¡å·çš„ç ç›¸ä½ï¼Œå› æ­¤
+            % åº”é™ä½æœ¬åœ°ç é¢‘ç‡ï¼Œç¨å¾®â€œç­‰ä¸€ç­‰â€è¾“å…¥ä¿¡å·ã€‚
             codeFreq = settings.codeFreqBasis - codeNco;
-            % codeFreq = settings.codeFreqBasis - codeNco + (carrFreq - settings.IF) / 1540;   % ¸Ã¹«Ê½ÎªÔØ²¨»·¸¨ÖúÂë»·
+            % codeFreq = settings.codeFreqBasis - codeNco + (carrFreq - settings.IF) / 1540;   % è¯¥å…¬å¼ä¸ºè½½æ³¢ç¯è¾…åŠ©ç ç¯
             
             trackResults(channelNr).codeFreq(loopCnt) = codeFreq;
 
-%% ¼ÇÂ¼ĞÅºÅ¸ú×ÙµÄ½á¹û ----------------------
-            % ¼ÇÂ¼Êı¾İÎÄ¼şÖ¸ÕëµÄÎ»ÖÃ£¬¸ÃÊıÖµµÄµ¥Î»Îª²ÉÑùµã¸öÊı£¬¸ÃÊıÖµÊÇÎªÁË´Ó
-            % ¸ú×Ù»·ÌáÈ¡¹Û²âÖµÓÃµÄ¡£¶øftellµÄµ¥Î»ÊÇ×Ö½Ú£¬´Ë´¦Òª×¢Òâµ¥Î»Æ¥Åä
+%% è®°å½•ä¿¡å·è·Ÿè¸ªçš„ç»“æœ ----------------------
+            % è®°å½•æ•°æ®æ–‡ä»¶æŒ‡é’ˆçš„ä½ç½®ï¼Œè¯¥æ•°å€¼çš„å•ä½ä¸ºé‡‡æ ·ç‚¹ä¸ªæ•°ï¼Œè¯¥æ•°å€¼æ˜¯ä¸ºäº†ä»
+            % è·Ÿè¸ªç¯æå–è§‚æµ‹å€¼ç”¨çš„ã€‚è€Œftellçš„å•ä½æ˜¯å­—èŠ‚ï¼Œæ­¤å¤„è¦æ³¨æ„å•ä½åŒ¹é…
             trackResults(channelNr).absoluteSample(loopCnt) = ftell(fid) / ...
                                     settings.dataFormat / settings.fileType;
 
@@ -296,7 +296,7 @@ for channelNr = 1:settings.numberOfChannels
             trackResults(channelNr).pllDiscr(loopCnt)       = carrError;
             trackResults(channelNr).pllDiscrFilt(loopCnt)   = carrNco;
             
-            % ÓÃÓÚ»­ÀòÈøÈçÍ¼£¬¹Û²ìE¡¢P¡¢LÈıÖ§Â·ĞÅºÅÄÜÁ¿±ä»¯
+            % ç”¨äºç”»è‰è¨å¦‚å›¾ï¼Œè§‚å¯ŸEã€Pã€Lä¸‰æ”¯è·¯ä¿¡å·èƒ½é‡å˜åŒ–
             trackResults(channelNr).I_E(loopCnt) = I_E;
             trackResults(channelNr).I_P(loopCnt) = I_P;
             trackResults(channelNr).I_L(loopCnt) = I_L;
@@ -309,13 +309,13 @@ for channelNr = 1:settings.numberOfChannels
             
         end % for loopCnt
 
-        % ¼òµ¥µÄÈÏÎª³É¹¦²¶»ñµ½ÎÀĞÇĞÅºÅµÄÍ¨µÀÔÚ¸ú×Ù»·½Ú¶¼³É¹¦¸ú×ÙÁËĞÅºÅ
-        % ÕâÀïÆäÊµÓ¦¸Ã½øĞĞĞÅºÅ¸ú×Ù¼ì²â£¬ÊµÊ±ÅĞ¶ÏĞÅºÅÊÇ·ñÊ§Ëø
-        % µ«ÎÒ±È½ÏÀÁ
+        % ç®€å•çš„è®¤ä¸ºæˆåŠŸæ•è·åˆ°å«æ˜Ÿä¿¡å·çš„é€šé“åœ¨è·Ÿè¸ªç¯èŠ‚éƒ½æˆåŠŸè·Ÿè¸ªäº†ä¿¡å·
+        % è¿™é‡Œå…¶å®åº”è¯¥è¿›è¡Œä¿¡å·è·Ÿè¸ªæ£€æµ‹ï¼Œå®æ—¶åˆ¤æ–­ä¿¡å·æ˜¯å¦å¤±é”
+        % ä½†æˆ‘æ¯”è¾ƒæ‡’
         trackResults(channelNr).status  = channel(channelNr).status;        
         
     end % if a PRN is assigned
 end % for channelNr 
 
-% ¹Ø±Õ½ø¶ÈÌõ
+% å…³é—­è¿›åº¦æ¡
 close(hwb)
