@@ -1,41 +1,41 @@
-% ZCJÖØ¹¹GNSS_SDRÏîÄ¿£¬²¢ĞŞÕıÆäÖĞµÄÈô¸ÉBUG
+% ZCJé‡æ„GNSS_SDRé¡¹ç›®ï¼Œå¹¶ä¿®æ­£å…¶ä¸­çš„è‹¥å¹²BUG
 
 clear; close all; 
 %%
 format ('compact');
 format ('long', 'g');
 
-%-------- Ìí¼ÓÒ»Ğ©ÎÄ¼ş¼Ğµ½¹¤×÷Â·¾¶ÖĞ ---------------------------------------
-addpath include             % ½«Ò»Ğ©×Óº¯Êı·ÅÔÚÕâÀï
-addpath geoFunctions        % Ò»Ğ©ºÍµØÇòÏà¹ØµÄ×Óº¯Êı
-addpath acquire_zcj         % ĞÅºÅ²¶»ñ
-addpath track_zcj           % ĞÅºÅ¸ú×Ùº¯Êı
-addpath PVT                 % ¶¨Î»
-addpath deepIntegration     % ¸÷ÖÖ×éºÏµ¼º½ÊµÏÖ
+%-------- æ·»åŠ ä¸€äº›æ–‡ä»¶å¤¹åˆ°å·¥ä½œè·¯å¾„ä¸­ ---------------------------------------
+addpath include             % å°†ä¸€äº›å­å‡½æ•°æ”¾åœ¨è¿™é‡Œ
+addpath geoFunctions        % ä¸€äº›å’Œåœ°çƒç›¸å…³çš„å­å‡½æ•°
+addpath acquire_zcj         % ä¿¡å·æ•è·
+addpath track_zcj           % ä¿¡å·è·Ÿè¸ªå‡½æ•°
+addpath PVT                 % å®šä½
+addpath deepIntegration     % å„ç§ç»„åˆå¯¼èˆªå®ç°
 
-%% ³õÊ¼»¯ ==========================================================
+%% åˆå§‹åŒ– ==========================================================
 disp ('Starting processing...');
 
 settings = initSettings();
 [fid, message] = fopen(settings.fileName, 'rb');
 
-% Êı¾İÎÄ¼ş³É¹¦¼ÓÔØ
+% æ•°æ®æ–‡ä»¶æˆåŠŸåŠ è½½
 if (fid > 0)
     
-    % ½«ÎÄ¼şÖ¸ÕëÒÆ¶¯µ½ÆğÊ¼Î»ÖÃ£¬×¢ÒâµÚ¶ş¸ö²ÎÊıµÄµ¥Î»ÊÇ×Ö½Ú
+    % å°†æ–‡ä»¶æŒ‡é’ˆç§»åŠ¨åˆ°èµ·å§‹ä½ç½®ï¼Œæ³¨æ„ç¬¬äºŒä¸ªå‚æ•°çš„å•ä½æ˜¯å­—èŠ‚
     fseek(fid, settings.skipNumberOfSamples * settings.dataFormat * settings.fileType, 'bof');
 
 %% Acquisition ============================================================
 
-    % ¿ªÊ¼²¶»ñ¹ı³Ì£¬Èç¹û²¶»ñ¹ı³ÌÃ»±»Ç¿ÖÆÌø¹ıµÄ»°
+    % å¼€å§‹æ•è·è¿‡ç¨‹ï¼Œå¦‚æœæ•è·è¿‡ç¨‹æ²¡è¢«å¼ºåˆ¶è·³è¿‡çš„è¯
     if ((settings.skipAcquisition == 0) || ~exist('acqResults', 'var'))
         
-        % Ò»¸öCAÂëÖÜÆÚ¶ÔÓ¦µÄ²ÉÑùµã¸öÊı
+        % ä¸€ä¸ªCAç å‘¨æœŸå¯¹åº”çš„é‡‡æ ·ç‚¹ä¸ªæ•°
         samplesPerCode = round(settings.samplingFreq / ...
                            (settings.codeFreqBasis / settings.codeLength));
         
-        % ¶ÁÈ¡Êı¾İÓÃÓÚ²¶»ñ. Ê¹ÓÃ³¤¶ÈÎª20msµÄÊı¾İÓÃÓÚ¾«È·²¶»ñ(¾«È·²¶»ñÕâÒ»¹ı³Ì
-        % ²»ÊÇ±ØĞëµÄ£¬Ó¦¸ù¾İÊµ¼ÊÓ¦ÓÃ½øĞĞ¿¼ÂÇ)
+        % è¯»å–æ•°æ®ç”¨äºæ•è·. ä½¿ç”¨é•¿åº¦ä¸º20msçš„æ•°æ®ç”¨äºç²¾ç¡®æ•è·(ç²¾ç¡®æ•è·è¿™ä¸€è¿‡ç¨‹
+        % ä¸æ˜¯å¿…é¡»çš„ï¼Œåº”æ ¹æ®å®é™…åº”ç”¨è¿›è¡Œè€ƒè™‘)
         data = fread(fid, 20 * samplesPerCode * settings.fileType, settings.dataType)';
         if settings.fileType == 2
             dataI = data(1:2:end);
@@ -44,85 +44,85 @@ if (fid > 0)
             data  = 1 * dataI + 1j * dataQ;  % using IQ 
         end
 
-        %-------- ¿ªÊ¼²¶»ñ¹ı³Ì ---------------------------------------------
+        %-------- å¼€å§‹æ•è·è¿‡ç¨‹ ---------------------------------------------
         disp ('   Acquiring satellites...');
         
-        notUsingFineFreqAcq = 1;                     % ²»Ê¹ÓÃÆµÂÊ¾«È·²¶»ñ
+        notUsingFineFreqAcq = 1;                     % ä¸ä½¿ç”¨é¢‘ç‡ç²¾ç¡®æ•è·
         if notUsingFineFreqAcq == 1
-            acqResults = acquisition_L1CA1(data, settings);   % ¸ÃËã·¨ÎŞ·¨µÖ¿¹±ÈÌØ·­×ª¡£²»Ê¹ÓÃ¾«²¶»ñ·½·¨¡£²»ÀûÓÚÈõĞÅºÅ²¶»ñ
+            acqResults = acquisition_L1CA1(data, settings);   % è¯¥ç®—æ³•æ— æ³•æŠµæŠ—æ¯”ç‰¹ç¿»è½¬ã€‚ä¸ä½¿ç”¨ç²¾æ•è·æ–¹æ³•ã€‚ä¸åˆ©äºå¼±ä¿¡å·æ•è·
         else
-            acqResults = acquisition_L1CA2(data, settings);   % ¸ÃËã·¨ÎŞ·¨µÖ¿¹±ÈÌØ·­×ª¡£Ê¹ÓÃ¾«²¶»ñ·½·¨¡£²»ÀûÓÚÈõĞÅºÅ²¶»ñ
+            acqResults = acquisition_L1CA2(data, settings);   % è¯¥ç®—æ³•æ— æ³•æŠµæŠ—æ¯”ç‰¹ç¿»è½¬ã€‚ä½¿ç”¨ç²¾æ•è·æ–¹æ³•ã€‚ä¸åˆ©äºå¼±ä¿¡å·æ•è·
         end
         
         plotAcquisition(acqResults, settings);
         clear data dataI dataQ
     end
 
-%% ½«²¶»ñµÃµ½µÄ½á¹ûÉèÖÃ³ÉÍ¨µÀµÄ³õÊ¼×´Ì¬ ===============================
-    if (any(acqResults.carrFreq))   % Èç¹ûÓĞÍ¨µÀ²¶»ñ³É¹¦Ôò½øĞĞÍ¨µÀ³õÊ¼»¯
-        channel = preRun(acqResults, settings);    % ÀûÓÃ²¶»ñµ½µÄÊı¾İ³õÊ¼»¯Í¨µÀ½á¹¹Ìå
+%% å°†æ•è·å¾—åˆ°çš„ç»“æœè®¾ç½®æˆé€šé“çš„åˆå§‹çŠ¶æ€ ===============================
+    if (any(acqResults.carrFreq))   % å¦‚æœæœ‰é€šé“æ•è·æˆåŠŸåˆ™è¿›è¡Œé€šé“åˆå§‹åŒ–
+        channel = preRun(acqResults, settings);    % åˆ©ç”¨æ•è·åˆ°çš„æ•°æ®åˆå§‹åŒ–é€šé“ç»“æ„ä½“
         showChannelStatus(channel, settings);
     else
-        % Ã»¼ì²âµ½ÈÎºÎÎÀĞÇĞÅºÅ
+        % æ²¡æ£€æµ‹åˆ°ä»»ä½•å«æ˜Ÿä¿¡å·
         disp('No GNSS signals detected, signal processing finished.');
         trackResults = [];
         return;
     end
 
-%% ĞÅºÅ¸ú×Ù =========================================================
+%% ä¿¡å·è·Ÿè¸ª =========================================================
     startTime = now;
     disp (['   Tracking started at ', datestr(startTime)]);
     
-    % ¶ÔÓÚ¸ø¶¨³¤¶ÈµÄÊı¾İ(ÓÉsettings.msToProcess¾ö¶¨)½øĞĞĞÅºÅ¸ú×Ù
-    % ¸ú×Ù·½Ê½ÎªÖğ¸öÍ¨µÀ¸ú×Ù£¬¼´Í¨µÀÖ®¼ä²»ÊÇ²¢ĞĞµÄ
-    % ³¢ÊÔĞ´³ö¶àÖÖ¸ú×Ùº¯Êı
+    % å¯¹äºç»™å®šé•¿åº¦çš„æ•°æ®(ç”±settings.msToProcesså†³å®š)è¿›è¡Œä¿¡å·è·Ÿè¸ª
+    % è·Ÿè¸ªæ–¹å¼ä¸ºé€ä¸ªé€šé“è·Ÿè¸ªï¼Œå³é€šé“ä¹‹é—´ä¸æ˜¯å¹¶è¡Œçš„
+    % å°è¯•å†™å‡ºå¤šç§è·Ÿè¸ªå‡½æ•°
     
-    % GNSS_SDRµÄ¸ú×Ùº¯Êı£¬½öÊ¹ÓÃ1msÏà¸É»ı·Ö£¬Òò´Ë¿ÉÒÔ²»¿¼ÂÇ±ÈÌØÍ¬²½µÄÎÊÌâ
+    % GNSS_SDRçš„è·Ÿè¸ªå‡½æ•°ï¼Œä»…ä½¿ç”¨1msç›¸å¹²ç§¯åˆ†ï¼Œå› æ­¤å¯ä»¥ä¸è€ƒè™‘æ¯”ç‰¹åŒæ­¥çš„é—®é¢˜
     % [trackResults, channel] = tracking(fid, channel, settings);
     
-    % ¶ş½×Âë»·£¬¶ş½×ÔØ²¨»·¡£PLL»·Â·ÂË²¨²ÉÓÃÊé±¾ÉÏĞÅºÅÁ÷Í¼µÄĞ´·¨£¬½öÊ¹ÓÃ1msÏà¸É»ı·Ö
+    % äºŒé˜¶ç ç¯ï¼ŒäºŒé˜¶è½½æ³¢ç¯ã€‚PLLç¯è·¯æ»¤æ³¢é‡‡ç”¨ä¹¦æœ¬ä¸Šä¿¡å·æµå›¾çš„å†™æ³•ï¼Œä»…ä½¿ç”¨1msç›¸å¹²ç§¯åˆ†
     % [trackResults, channel] = trackpll2nd(fid, channel, settings);  
     
-    % ¶ş½×Âë»·£¬Èı½×ÔØ²¨»·¡£PLL»·Â·ÂË²¨²ÉÓÃÊé±¾ÉÏĞÅºÅÁ÷Í¼µÄĞ´·¨£¬½öÊ¹ÓÃ1msÏà¸É»ı·Ö
+    % äºŒé˜¶ç ç¯ï¼Œä¸‰é˜¶è½½æ³¢ç¯ã€‚PLLç¯è·¯æ»¤æ³¢é‡‡ç”¨ä¹¦æœ¬ä¸Šä¿¡å·æµå›¾çš„å†™æ³•ï¼Œä»…ä½¿ç”¨1msç›¸å¹²ç§¯åˆ†
     % [trackResults, channel] = trackpll3rd(fid, channel, settings);
     
-    % ¶ş½×Âë»·£¬Èı½×ÔØ²¨»·¡£PLL»·Â·ÂË²¨²ÉÓÃÁíÍâÒ»ÖÖĞ´·¨£¬½öÊ¹ÓÃ1msÏà¸É»ı·Ö
+    % äºŒé˜¶ç ç¯ï¼Œä¸‰é˜¶è½½æ³¢ç¯ã€‚PLLç¯è·¯æ»¤æ³¢é‡‡ç”¨å¦å¤–ä¸€ç§å†™æ³•ï¼Œä»…ä½¿ç”¨1msç›¸å¹²ç§¯åˆ†
     % [trackResults, channel] = trackpll3rd2(fid, channel, settings);
     
-    % ¶ş½×Âë»·£¬Ò»½×FLL¸¨Öú¶ş½×PLL¡£½öÊ¹ÓÃ1msÏà¸É»ı·Ö£¬·ÂÕÕgnss_sdrlibÕâ·İCÓïÑÔ´úÂë
-    % ¸Ãº¯ÊıµÄÕıÈ·ĞÔÓĞ´ıÑéÖ¤,ËäÈ»ºÜÏñÊÇ¶ÔµÄ(doge),½öÊ¹ÓÃ1msÏà¸É»ı·Ö
-    % isFLL = 1, Ôò¶Ï¿ªPLL±äÎª´¿PLL£»·ñÔòÎªFLL¸¨ÖúPLL
+    % äºŒé˜¶ç ç¯ï¼Œä¸€é˜¶FLLè¾…åŠ©äºŒé˜¶PLLã€‚ä»…ä½¿ç”¨1msç›¸å¹²ç§¯åˆ†ï¼Œä»¿ç…§gnss_sdrlibè¿™ä»½Cè¯­è¨€ä»£ç 
+    % è¯¥å‡½æ•°çš„æ­£ç¡®æ€§æœ‰å¾…éªŒè¯,è™½ç„¶å¾ˆåƒæ˜¯å¯¹çš„(doge),ä»…ä½¿ç”¨1msç›¸å¹²ç§¯åˆ†
+    % isFLL = 1, åˆ™æ–­å¼€PLLå˜ä¸ºçº¯FLLï¼›å¦åˆ™ä¸ºFLLè¾…åŠ©PLL
     isFLL = 0; [trackResults, channel] = trackfll1stpll2nd(fid, channel, settings, isFLL);
     
-    % ¶ş½×Âë»·£¬Ò»½×FLL¸¨Öú¶ş½×PLL¡£½öÊ¹ÓÃ1msÏà¸É»ı·Ö£¬·ÂÕÕgnss_sdrlibÕâ·İCÓïÑÔ´úÂë
-    % ¸Ãº¯ÊıµÄÕıÈ·ĞÔÓĞ´ıÑéÖ¤,ËäÈ»ºÜÏñÊÇ¶ÔµÄ(doge),½öÊ¹ÓÃ1msÏà¸É»ı·Ö
-    % ÍêÈ«°´ÕÕĞÅºÅÁ÷Í¼µÄĞ´·¨
-    % isFLL = 1, Ôò¶Ï¿ªPLL±äÎª´¿PLL£»·ñÔòÎªFLL¸¨ÖúPLL
+    % äºŒé˜¶ç ç¯ï¼Œä¸€é˜¶FLLè¾…åŠ©äºŒé˜¶PLLã€‚ä»…ä½¿ç”¨1msç›¸å¹²ç§¯åˆ†ï¼Œä»¿ç…§gnss_sdrlibè¿™ä»½Cè¯­è¨€ä»£ç 
+    % è¯¥å‡½æ•°çš„æ­£ç¡®æ€§æœ‰å¾…éªŒè¯,è™½ç„¶å¾ˆåƒæ˜¯å¯¹çš„(doge),ä»…ä½¿ç”¨1msç›¸å¹²ç§¯åˆ†
+    % å®Œå…¨æŒ‰ç…§ä¿¡å·æµå›¾çš„å†™æ³•
+    % isFLL = 1, åˆ™æ–­å¼€PLLå˜ä¸ºçº¯FLLï¼›å¦åˆ™ä¸ºFLLè¾…åŠ©PLL
     % [trackResults, channel] = trackfll1stpll2nd2(fid, channel, settings, isFLL);
     
-    % ¶ş½×Âë»·£¬¶ş½×FLL¸¨ÖúÈı½×PLL¡£½öÊ¹ÓÃ1msÏà¸É»ı·Ö£¬·ÂÕÕgnss_sdrlibÕâ·İCÓïÑÔ´úÂë
-    % ¸Ãº¯ÊıµÄÕıÈ·ĞÔÓĞ´ıÑéÖ¤,ËäÈ»ºÜÏñÊÇ¶ÔµÄ(doge),½öÊ¹ÓÃ1msÏà¸É»ı·Ö
-    % ÍêÈ«°´ÕÕĞÅºÅÁ÷Í¼µÄĞ´·¨
-    % isFLL = 1, Ôò¶Ï¿ªPLL±äÎª´¿PLL£»·ñÔòÎªFLL¸¨ÖúPLL
+    % äºŒé˜¶ç ç¯ï¼ŒäºŒé˜¶FLLè¾…åŠ©ä¸‰é˜¶PLLã€‚ä»…ä½¿ç”¨1msç›¸å¹²ç§¯åˆ†ï¼Œä»¿ç…§gnss_sdrlibè¿™ä»½Cè¯­è¨€ä»£ç 
+    % è¯¥å‡½æ•°çš„æ­£ç¡®æ€§æœ‰å¾…éªŒè¯,è™½ç„¶å¾ˆåƒæ˜¯å¯¹çš„(doge),ä»…ä½¿ç”¨1msç›¸å¹²ç§¯åˆ†
+    % å®Œå…¨æŒ‰ç…§ä¿¡å·æµå›¾çš„å†™æ³•
+    % isFLL = 1, åˆ™æ–­å¼€PLLå˜ä¸ºçº¯FLLï¼›å¦åˆ™ä¸ºFLLè¾…åŠ©PLL
     % [trackResults, channel] = trackfll2ndpll3rd(fid, channel, settings, isFLL);
     
-    % ¹Ø±ÕÊı¾İÎÄ¼ş
+    % å…³é—­æ•°æ®æ–‡ä»¶
     fclose(fid);
     
     disp(['   Tracking is over (elapsed time ', ...
                                         datestr(now - startTime, 13), ')'])     
 
-    % ¸ú×Ù»áºÄ·ÑºÜ³¤Ê±¼ä£¬¸ú×Ù½áÊøºó½«¸ú×Ù½á¹û´æ´¢µ½±¾µØ
+    % è·Ÿè¸ªä¼šè€—è´¹å¾ˆé•¿æ—¶é—´ï¼Œè·Ÿè¸ªç»“æŸåå°†è·Ÿè¸ªç»“æœå­˜å‚¨åˆ°æœ¬åœ°
     disp('   Saving Acq & Tracking results to file "trackingResults.mat"')
     save('trackingResults', ...
                       'trackResults', 'settings', 'acqResults', 'channel');                  
 
-%% ¶¨Î» ============================================================
+%% å®šä½ ============================================================
     disp('   Calculating navigation solutions...');
     [navSolutions, eph, subFrameStart, TOW] = postNavigation_zcj(trackResults, settings);
     disp('   Processing is complete for this data block');
     
-%% Õ¹Ê¾½á¹û ===================================================
+%% å±•ç¤ºç»“æœ ===================================================
     disp ('   Ploting results...');
     if settings.plotTracking
         plotTracking(1:settings.numberOfChannels, trackResults, settings);
@@ -133,6 +133,6 @@ if (fid > 0)
     disp('Post processing of the signal is over.');
 
 else
-    % Êı¾İÎÄ¼ş¼ÓÔØÊ§°Ü
+    % æ•°æ®æ–‡ä»¶åŠ è½½å¤±è´¥
     error('Unable to read file %s: %s.', settings.fileName, message);
 end 
